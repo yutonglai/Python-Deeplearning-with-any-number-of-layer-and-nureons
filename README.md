@@ -156,9 +156,8 @@ I develop this flexiable code for any number of layers and nureons, please enjoy
     subplot(3,1,3)
     plot(W);grid(1)
     W.shape
-![image](https://user-images.githubusercontent.com/46899273/53830136-6cacc280-3f47-11e9-8c1f-c3b0c2fdc601.png)
-![image](https://user-images.githubusercontent.com/46899273/53830144-6fa7b300-3f47-11e9-958d-f85c5f788598.png)
-![image](https://user-images.githubusercontent.com/46899273/53830151-720a0d00-3f47-11e9-823e-92319a2b3899.png)
+
+![2d](https://user-images.githubusercontent.com/46899273/53830341-d62cd100-3f47-11e9-9833-de8dce323a66.png)
 
 #### 3-D plot:
     #%matplotlib qt
@@ -204,5 +203,5 @@ I develop this flexiable code for any number of layers and nureons, please enjoy
     ax.set_xlabel('Hours Sleep')
     ax.set_ylabel('Hours Study')
     ax.set_zlabel('Test  Score')
-![image](https://user-images.githubusercontent.com/46899273/53830237-97971680-3f47-11e9-8b62-5352aaa05997.png)
+
 
