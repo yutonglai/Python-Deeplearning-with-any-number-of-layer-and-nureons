@@ -87,8 +87,8 @@ I develop this flexiable code for any number of layers and nureons, please enjoy
             self.W_end[1] = self.LayerSize[0]*self.LayerSize[1]
             for i in range(len(self.LayerSize)-2):
                 self.W_end[i+2] = self.W_end[i+1] + self.LayerSize[i+1]*self.LayerSize[i+2]
-                self.W[i+2]     = np.reshape(self.params[int(self.W_end[i+1]):int(self.W_end[i+2])], (self.LayerSize[i+1], self.LayerSize[i+2]))
-                self.W[i+2]     = self.W[i+2] - self.LearningRate*self.dJdW[i+2]
+                self.W[i+2] = np.reshape(self.params[int(self.W_end[i+1]):int(self.W_end[i+2])], (self.LayerSize[i+1], self.LayerSize[i+2]))
+                self.W[i+2] = self.W[i+2] - self.LearningRate*self.dJdW[i+2]
             return(self.W)
 
 
@@ -101,15 +101,15 @@ I develop this flexiable code for any number of layers and nureons, please enjoy
     trainy = np.array(([75],  [82],  [93],   [70]),    dtype=float)
 
     #Testing Data:
-    testx = np.array(([4,5.5], [4.5,1], [9,2.5], [6,2]), dtype=float)
-    testy = np.array(([70],    [89],    [85],    [75]),  dtype=float)
+    testx  = np.array(([4,5.5], [4.5,1], [9,2.5], [6,2]), dtype=float)
+    testy  = np.array(([70],    [89],    [85],    [75]),  dtype=float)
 
     #Normalize:
     trainx = trainx/np.amax(trainx, axis=0)
     trainy = trainy/100
     #Normalize by max of training data:
-    testx = testx/np.amax(testx, axis=0)
-    testy = testy/100
+    testx  = testx/np.amax(testx, axis=0)
+    testy  = testy/100
 
     #Hyper-parameters
     HiddenLayer  = [10,10,10,10]
@@ -120,8 +120,8 @@ I develop this flexiable code for any number of layers and nureons, please enjoy
 
 #### Implement
     #Train network with new data:
-    NN   = NeuralNetwork(X=trainx, HiddenLayer=HiddenLayer, Lambda=Lambda,LearningRate=LearningRate)
-    yHat = NN.forwardPropagation(trainx)
+    NN    = NeuralNetwork(X=trainx, HiddenLayer=HiddenLayer, Lambda=Lambda,LearningRate=LearningRate)
+    yHat  = NN.forwardPropagation(trainx)
     score = np.zeros((Iteration,len(trainx)))
     cost  = np.zeros(Iteration)
     testcost = np.zeros(Iteration)
