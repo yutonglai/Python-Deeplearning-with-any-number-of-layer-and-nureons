@@ -203,5 +203,5 @@ I develop this flexiable code for any number of layers and nureons, please enjoy
     ax.set_xlabel('Hours Sleep')
     ax.set_ylabel('Hours Study')
     ax.set_zlabel('Test  Score')
-
+![3d](https://user-images.githubusercontent.com/46899273/53830444-112f0480-3f48-11e9-9844-4fc382080975.png)
 
