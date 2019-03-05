@@ -156,4 +156,53 @@ I develop this flexiable code for any number of layers and nureons, please enjoy
     subplot(3,1,3)
     plot(W);grid(1)
     W.shape
-  
+![image](https://user-images.githubusercontent.com/46899273/53830136-6cacc280-3f47-11e9-8c1f-c3b0c2fdc601.png)
+![image](https://user-images.githubusercontent.com/46899273/53830144-6fa7b300-3f47-11e9-958d-f85c5f788598.png)
+![image](https://user-images.githubusercontent.com/46899273/53830151-720a0d00-3f47-11e9-823e-92319a2b3899.png)
+
+#### 3-D plot:
+    #%matplotlib qt
+
+    fig = plt.figure(figsize=(10,10))
+    ax = fig.gca(projection='3d')
+
+    #Test network for various combinations of sleep/study:
+    hoursSleep = linspace(0, 10,  100)
+    hoursStudy = linspace(0,  5,  100)
+
+    #Normalize data (same way training data way normalized)
+    hoursSleepNorm = hoursSleep/10
+    hoursStudyNorm = hoursStudy/5
+
+    #Create 2D versions of input for plotting
+    a, b = meshgrid(hoursSleepNorm, hoursStudyNorm)
+
+    #Join into a single input matrix
+    allInputs = np.zeros((a.size, 2))
+    allInputs[:,0] = a.ravel()
+    allInputs[:,1] = b.ravel()
+    allOutputs = NN.forwardPropagation(allInputs)
+
+    #Contour PLot:
+    yy = np.dot(hoursStudy.reshape(100,1), np.ones((1,100)))
+    xx = np.dot(hoursSleep.reshape(100,1), np.ones((1,100))).T
+
+    CS = contour(xx, yy, 100*allOutputs.reshape(100,100))
+    clabel(CS, inline=1, fontsize=10)
+    xlabel('Hours Sleep')
+    ylabel('Hours Study')
+
+    #Scatter training example:
+    #plt.figure(figsize=(20,20))
+    ax.scatter(10*testx[:,0], 5*testx[:,1], 100*testy, c='k', alpha=1, s=30)
+    ax.scatter(10*trainx[:,0], 5*trainx[:,1], 100*trainy, c='r', alpha=1, s=30)
+    surf = ax.plot_surface(xx, yy, \
+                           100*allOutputs.reshape(100,100), \
+                           cmap=cm.jet, \
+                           alpha=0.5)
+
+    ax.set_xlabel('Hours Sleep')
+    ax.set_ylabel('Hours Study')
+    ax.set_zlabel('Test  Score')
+
+
