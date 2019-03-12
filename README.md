@@ -9,34 +9,71 @@ I develop this flexiable code for any number of layers and nureons, please enjoy
     from mpl_toolkits.mplot3d import Axes3D
  
  #### Defining the class
-    #New complete class
+#### New complete class
     class NeuralNetwork(object):
-        def __init__(self, HiddenLayer=0, X=0, Lambda=0, LearningRate=0):  
+        def __init__(self, HiddenLayer=0, X=0, Lambda=0, LearningRate=0, Activation='Sigmoid', a=0.5):  
 
-            #### Define Hyperparameters
+            ## Define Hyperparameters
             self.LayerSize = np.concatenate(([X.shape[1]], HiddenLayer, [1]))
             # Learning Rate
             self.LearningRate = LearningRate
-            # Regularization Parameter:
+            # Regularization Parameter
             self.Lambda = Lambda
+            # Activation Function
+            self.Activation = Activation
+            # parameter for ReLU
+            self.a = a
 
-            #### Array Initialization
+            ## Array Initialization
             self.W     = [np.random.randn(self.LayerSize[0], self.LayerSize[1])]
             self.dJdW  = [np.random.randn(self.LayerSize[0], self.LayerSize[1])]
-            self.a     = [zeros((X.shape[0], self.LayerSize[0]))]
-            self.z     = [zeros((X.shape[0], self.LayerSize[0]))]
-            self.delta = [zeros((X.shape[0], self.LayerSize[0]))]              
-            self.W_end = zeros(len(self.LayerSize)) 
+            self.alpha = [np.zeros((X.shape[0], self.LayerSize[0]))]
+            self.z     = [np.zeros((X.shape[0], self.LayerSize[0]))]
+            self.delta = [np.zeros((X.shape[0], self.LayerSize[0]))]              
+            self.W_end = np.zeros(len(self.LayerSize)) 
 
             for i in range(len(self.LayerSize)-1):
                 self.W.append(np.random.randn(self.LayerSize[i], self.LayerSize[i+1]))
                 self.dJdW.append(np.random.randn(self.LayerSize[i], self.LayerSize[i+1]))
-                self.a.append(zeros((X.shape[0], self.LayerSize[i+1])))
-                self.z.append(zeros((X.shape[0], self.LayerSize[i+1])))
-                self.delta.append(zeros((X.shape[0], self.LayerSize[i+1])))
+                self.alpha.append(np.zeros((X.shape[0], self.LayerSize[i+1])))
+                self.z.append(np.zeros((X.shape[0], self.LayerSize[i+1])))
+                self.delta.append(np.zeros((X.shape[0], self.LayerSize[i+1])))
 
 
-        #Helper functions for interacting with other methods/classes
+        def activationFunction(self, z):
+            # Apply sigmoid activation function to scalar, vector, or matrix
+            if self.Activation == 'Sigmoid':
+                return 1/(1+np.exp(-z))
+            if self.Activation == 'ReLU':
+                z[z<0] = z[z<0]*(self.a)
+                return z
+            if self.Activation == 'TanH':
+                return (np.exp(z)-np.exp(-z))/(np.exp(z)+np.exp(-z))
+
+
+        def ActivationDerivative(self, z):
+            # Gradient of sigmoid
+            if self.Activation == 'Sigmoid':
+                return np.exp(-z)/((1+np.exp(-z))**2)
+            if self.Activation == 'ReLU':
+                z[z>=0] = 1
+                z[z<0] = self.a
+                return -z
+            if self.Activation == 'TanH':
+                TanH = (np.exp(z)-np.exp(-z))/(np.exp(z)+np.exp(-z))
+                return 1-TanH**2
+
+
+        def setParams(self):
+            # Set W1 and W2 using single parameter vector:  
+            self.W_end[1] = self.LayerSize[0]*self.LayerSize[1]
+            for i in range(len(self.LayerSize)-2):
+                self.W_end[i+2] = self.W_end[i+1] + self.LayerSize[i+1]*self.LayerSize[i+2]
+                self.W[i+2]     = np.reshape(self.params[int(self.W_end[i+1]):int(self.W_end[i+2])], (self.LayerSize[i+1], self.LayerSize[i+2]))
+                self.W[i+2]     = self.W[i+2] - self.LearningRate*self.dJdW[i+2]
+            return self.W
+
+
         def getParams(self):
             #Get W1 and W2 Rolled into vector:
             self.params = self.W[1].ravel()
@@ -45,57 +82,45 @@ I develop this flexiable code for any number of layers and nureons, please enjoy
             return self.params
 
 
+        def getdJdW(self):
+            #Get W1 and W2 Rolled into vector:
+            self.paramsdJdW = self.dJdW[1].ravel()
+            for i in range(len(self.LayerSize)-2):
+                self.paramsdJdW = np.concatenate((self.paramsdJdW, self.dJdW[i+2].ravel()))
+            return self.paramsdJdW
+
+
         def forwardPropagation(self, X):
-            #Propogate inputs though network
-            self.a[0] = X
+            # Propogate inputs though network    
+            self.alpha[0] = X
             for i in range(len(self.LayerSize)-1):
-                self.z[i+1] = np.dot(self.a[i], self.W[i+1])
-                self.a[i+1] = self.sigmoid(self.z[i+1])
-            return self.a[-1]
-
-
-        def sigmoid(self, z):
-            #Apply sigmoid activation function to scalar, vector, or matrix
-            return 1/(1+np.exp(-z))
-
-
-        def sigmoidPrime(self,z):
-            #Gradient of sigmoid
-            return np.exp(-z)/((1+np.exp(-z))**2)
+                self.z[i+1] = np.dot(self.alpha[i], self.W[i+1])
+                self.alpha[i+1] = self.activationFunction(self.z[i+1])
+            return self.alpha[-1]
 
 
         def costFunction(self, X, y):
-            #Compute cost for given X,y, use weights already stored in class.
-            self.yHat = self.forwardPropagation(X)
-            J = 0.5*sum((y-self.yHat)**2)/X.shape[0]# + (self.Lambda/2)*(np.sum(self.W[1]**2)+np.sum(self.W[2]**2))
-            #J = sum(-y*log(self.yHat) - (1-y)*log(1-self.yHat))/X.shape[0] + (self.Lambda/2)*(np.sum(self.W[1]**2)+np.sum(self.W[2]**2))
+            # Compute cost for given X,y, use weights already stored in class.
+            yHat = self.forwardPropagation(X)
+            J = 0.5*sum((y-yHat)**2)/X.shape[0]# + (self.Lambda/2)*(np.sum(self.W[1]**2)+np.sum(self.W[2]**2))
+            # J = sum(-y*log(yHat) - (1-y)*log(1-yHat))/X.shape[0] + (self.Lambda/2)*(np.sum(self.W[1]**2)+np.sum(self.W[2]**2))
             return J
 
 
-        def costFunctionPrime(self, X, y):
-            #Compute derivative with respect to W1 and W2 for a given X and y:
-            self.yHat = self.forwardPropagation(X)      
-            self.delta[-1] = np.multiply(-y/self.yHat+(1-y)/(1-self.yHat), self.sigmoidPrime(self.z[-1]))
-            self.dJdW[-1]  = np.dot(self.a[-2].T, self.delta[-1])/X.shape[0] + self.Lambda*self.W[-1]
+        def costFunctionDerivative(self, X, y):
+            # Compute derivative with respect to W for given X and y:
+            yHat = self.forwardPropagation(X)      
+            #self.delta[-1] = np.multiply(-y/yHat+(1-y)/(1-yHat), np.exp(-self.z[-1])/((1+np.exp(-self.z[-1]))**2))
+            #self.delta[-1] = np.multiply(-y/yHat+(1-y)/(1-yHat), self.Derivative(self.z[-1]))
+            #self.delta[-1] = np.multiply(-(y-yHat), self.Derivative(self.z[-1]))
+            self.delta[-1] = np.multiply(-(y-yHat), np.exp(-self.z[-1])/((1+np.exp(-self.z[-1]))**2))
+            self.dJdW[-1]  = np.dot(self.alpha[-2].T, self.delta[-1])/X.shape[0] + self.Lambda*self.W[-1]
             for i in range(len(self.LayerSize)-2):
-                self.delta[-i-2] = np.dot(self.delta[-i-1], self.W[-i-1].T)*self.sigmoidPrime(self.z[-i-2])
-                self.dJdW[-i-2]  = np.dot(self.a[-i-3].T, self.delta[-i-2])/X.shape[0] + self.Lambda*self.W[-i-2]     
+                self.delta[-i-2] = np.dot(self.delta[-i-1],   self.W[-i-1].T)*self.ActivationDerivative(self.z[-i-2])
+                self.dJdW[-i-2]  = np.dot(self.alpha[-i-3].T, self.delta[-i-2])/X.shape[0] + self.Lambda*self.W[-i-2]     
 
 
-        def setParams(self):
-            #Set W1 and W2 using single parameter vector:  
-            self.W_end[1] = self.LayerSize[0]*self.LayerSize[1]
-            for i in range(len(self.LayerSize)-2):
-                self.W_end[i+2] = self.W_end[i+1] + self.LayerSize[i+1]*self.LayerSize[i+2]
-                self.W[i+2] = np.reshape(self.params[int(self.W_end[i+1]):int(self.W_end[i+2])], (self.LayerSize[i+1], self.LayerSize[i+2]))
-                self.W[i+2] = self.W[i+2] - self.LearningRate*self.dJdW[i+2]
-            return(self.W)
-
-
-        def computeGradients(self, X, y):
-            dJdW1, dJdW2 = self.costFunctionPrime(X, y)
-            return np.concatenate((dJdW1.ravel(), dJdW2.ravel(), dJdW3.ravel()))
-            
+               
 #### Initialization
     trainx = np.array(([3,5], [5,1], [10,2], [6,1.5]), dtype=float)
     trainy = np.array(([75],  [82],  [93],   [70]),    dtype=float)
