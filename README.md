@@ -1,5 +1,5 @@
 # Python-Deeplearning-with-any-number-of-layer-and-nureons
-I develop this flexiable code for any number of layers and nureons, please enjoy.
+
 
 #### Head
     %pylab inline
